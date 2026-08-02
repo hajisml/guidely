@@ -6,7 +6,7 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException, UploadFile
 
 from config import DOCS_DIR
-from models.record import DocumentMeta
+from models.record import DocumentContent, DocumentMeta, DocumentUpdate
 from services.parsing import parse_bytes
 
 router = APIRouter(prefix="/api/documents", tags=["documents"])
@@ -44,3 +44,30 @@ async def upload_document(file: UploadFile) -> DocumentMeta:
     dest = _safe_path(file.filename or "")
     dest.write_text(text, encoding="utf-8")
     return _meta(dest)
+
+
+@router.get("/{name}")
+def get_document(name: str) -> DocumentContent:
+    path = _safe_path(name)
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail=f"document not found: {name}")
+    return DocumentContent(name=name, content=path.read_text(encoding="utf-8"))
+
+
+@router.put("/{name}")
+def update_document(name: str, body: DocumentUpdate) -> DocumentMeta:
+    path = _safe_path(name)
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail=f"document not found: {name}")
+    if not body.content.strip():
+        raise HTTPException(status_code=400, detail="content cannot be empty")
+    path.write_text(body.content, encoding="utf-8")
+    return _meta(path)
+
+
+@router.delete("/{name}", status_code=204)
+def delete_document(name: str) -> None:
+    path = _safe_path(name)
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail=f"document not found: {name}")
+    path.unlink()
