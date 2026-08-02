@@ -1,0 +1,46 @@
+Incident Response How-To
+
+Scope
+
+This how-to covers production incidents (outages, degraded service, data
+issues) and security incidents (suspected breach, leaked credentials, lost
+device). When in doubt, treat it as an incident — a false alarm costs minutes,
+a missed incident costs days.
+
+Severity levels
+
+SEV1: full outage or active security breach. Page on-call immediately, all
+hands until mitigated.
+SEV2: major feature broken or strong suspicion of a security issue. On-call
+handles it during working hours, escalates if not mitigated within 2 hours.
+SEV3: minor degradation, workaround exists. Fix within normal sprint work.
+
+Reporting an incident
+
+1. Post in #incidents with a one-line summary and what you observed.
+2. The on-call engineer (see the rotation in PagerDuty) becomes incident
+   commander, or assigns one.
+3. For security incidents also email security@company.test right away. Lost
+   or stolen devices must be reported within 4 hours so IT can remote-wipe.
+
+During the incident
+
+- The incident commander runs the response: assigns investigation, decides on
+  mitigation, and posts status updates in the thread every 30 minutes for
+  SEV1 and hourly for SEV2.
+- Nobody communicates externally about the incident except the commander or
+  whoever they delegate to. Customer-facing updates go through support.
+- Do not destroy evidence: for security incidents, isolate affected machines
+  instead of wiping or rebooting them.
+
+After the incident
+
+A blameless post-mortem is written within 5 working days for every SEV1 and
+SEV2. The template lives in the wiki under Engineering > Post-mortems. Action
+items get owners and due dates, and the post-mortem is shared in #incidents.
+
+Passwords or keys leaked
+
+Rotate the credential first, ask questions later. Then report to security as
+above. API keys committed to a repo count as leaked even if the repo is
+private — rotate and report within the same day.

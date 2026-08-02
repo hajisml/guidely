@@ -1,7 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from routes import documents
+
 app = FastAPI(title="Guidely API")
+
+app.include_router(documents.router)
 
 app.add_middleware(
     CORSMiddleware,
