@@ -12,6 +12,13 @@ from services.parsing import parse_bytes
 router = APIRouter(prefix="/api/documents", tags=["documents"])
 
 
+def _safe_path(name: str) -> Path:
+    """Resolve a document name inside DOCS_DIR, blocking path tricks."""
+    if not name or name != Path(name).name or name.startswith("."):
+        raise HTTPException(status_code=400, detail="invalid document name")
+    return DOCS_DIR / name
+
+
 def _meta(path: Path) -> DocumentMeta:
     stat = path.stat()
     return DocumentMeta(
@@ -34,6 +41,6 @@ async def upload_document(file: UploadFile) -> DocumentMeta:
         text = parse_bytes(data, file.filename or "")
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
-    dest = DOCS_DIR / file.filename
+    dest = _safe_path(file.filename or "")
     dest.write_text(text, encoding="utf-8")
     return _meta(dest)
