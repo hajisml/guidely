@@ -1,9 +1,19 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from routes import documents
+from services.vector_store import store
 
-app = FastAPI(title="Guidely API")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    store.load()
+    yield
+
+
+app = FastAPI(title="Guidely API", lifespan=lifespan)
 
 app.include_router(documents.router)
 
