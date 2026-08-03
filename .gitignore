@@ -9,3 +9,7 @@ dist/
 
 # secrets
 .env
+
+# local data
+backend/data/cache/
+backend/data/index/

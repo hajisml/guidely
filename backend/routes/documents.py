@@ -7,6 +7,8 @@ from fastapi import APIRouter, HTTPException, UploadFile
 
 from config import DOCS_DIR
 from models.record import DocumentContent, DocumentMeta, DocumentUpdate
+from services.gemini import MissingApiKeyError
+from services.indexer import rebuild_index
 from services.parsing import parse_bytes
 
 router = APIRouter(prefix="/api/documents", tags=["documents"])
@@ -44,6 +46,16 @@ async def upload_document(file: UploadFile) -> DocumentMeta:
     dest = _safe_path(file.filename or "")
     dest.write_text(text, encoding="utf-8")
     return _meta(dest)
+
+
+@router.post("/reindex")
+def reindex() -> dict:
+    try:
+        return rebuild_index()
+    except MissingApiKeyError as exc:
+        raise HTTPException(status_code=503, detail=str(exc))
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
 
 
 @router.get("/{name}")
