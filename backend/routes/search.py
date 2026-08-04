@@ -15,6 +15,7 @@ from services.vector_store import store
 router = APIRouter(prefix="/api/search", tags=["search"])
 
 TOP_K = 5
+MIN_SCORE = 0.35
 
 
 @contextmanager
@@ -56,7 +57,7 @@ def search(body: SearchRequest) -> SearchResponse:
         raise HTTPException(status_code=404, detail="no documents indexed yet, run reindex first")
 
     with _model_errors():
-        hits = store.search(embed_query(question), TOP_K)
+        hits = [h for h in store.search(embed_query(question), TOP_K) if h.score >= MIN_SCORE]
         if not hits:
             raise HTTPException(status_code=404, detail="no relevant passages found for this question")
         answer = llm.answer(question, hits)
