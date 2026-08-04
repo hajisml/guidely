@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, UploadFile
+from google.genai import errors as genai_errors
 
 from config import DOCS_DIR
 from models.record import DocumentContent, DocumentMeta, DocumentUpdate
@@ -54,6 +55,8 @@ def reindex() -> dict:
         return rebuild_index()
     except MissingApiKeyError as exc:
         raise HTTPException(status_code=503, detail=str(exc))
+    except genai_errors.APIError as exc:
+        raise HTTPException(status_code=502, detail=f"model request failed: {exc.message or exc.code}")
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
 
