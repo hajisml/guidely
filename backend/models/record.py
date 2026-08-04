@@ -18,3 +18,20 @@ class DocumentContent(BaseModel):
 
 class DocumentUpdate(BaseModel):
     content: str
+
+
+class SearchRequest(BaseModel):
+    question: str
+
+
+class Source(BaseModel):
+    doc: str
+    chunk_id: int
+    snippet: str
+    score: float
+
+
+class SearchResponse(BaseModel):
+    answer: str
+    sources: list[Source]
+    latency_ms: int
