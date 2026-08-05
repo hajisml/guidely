@@ -101,3 +101,11 @@ main {
   font-size: 0.8rem;
   margin-bottom: 0;
 }
+
+.error {
+  background: #fff5f5;
+  border: 1px solid #ffc9c9;
+  color: #c92a2a;
+  border-radius: 8px;
+  padding: 0.7rem 1rem;
+}
