@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { ask } from '../api'
+import SourceList from '../components/SourceList'
 
 export default function Search() {
   const [question, setQuestion] = useState('')
@@ -27,6 +28,8 @@ export default function Search() {
       {result && (
         <div className="answer">
           <p>{result.answer}</p>
+          <SourceList sources={result.sources} />
+          <p className="latency">answered in {(result.latency_ms / 1000).toFixed(1)}s</p>
         </div>
       )}
     </section>
