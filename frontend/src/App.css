@@ -153,3 +153,40 @@ main {
   color: #c92a2a;
   border-color: #ffc9c9;
 }
+
+.editor {
+  margin-top: 1.5rem;
+}
+
+.editor h2 {
+  font-size: 1.05rem;
+}
+
+.editor textarea {
+  width: 100%;
+  font-family: ui-monospace, 'Cascadia Code', monospace;
+  font-size: 0.9rem;
+  padding: 0.7rem;
+  border: 1px solid #ced4da;
+  border-radius: 8px;
+}
+
+.editor-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.editor-actions button {
+  padding: 0.45rem 1.1rem;
+  border-radius: 6px;
+  border: 1px solid #ced4da;
+  background: #fff;
+  cursor: pointer;
+}
+
+.editor-actions button:first-child {
+  background: #3b5bdb;
+  border-color: #3b5bdb;
+  color: #fff;
+}
