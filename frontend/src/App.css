@@ -109,3 +109,47 @@ main {
   border-radius: 8px;
   padding: 0.7rem 1rem;
 }
+
+.upload {
+  margin: 1rem 0;
+}
+
+.upload-btn {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border: 1px dashed #868e96;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #495057;
+}
+
+.doc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.doc-table th,
+.doc-table td {
+  text-align: left;
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.row-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.row-actions button {
+  border: 1px solid #ced4da;
+  background: #fff;
+  border-radius: 6px;
+  padding: 0.25rem 0.7rem;
+  cursor: pointer;
+}
+
+.row-actions .danger {
+  color: #c92a2a;
+  border-color: #ffc9c9;
+}
