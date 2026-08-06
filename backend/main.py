@@ -1,4 +1,5 @@
 import logging
+import time
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -8,6 +9,7 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from routes import documents, search
+from services import metrics
 from services.vector_store import store
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s")
@@ -21,6 +23,25 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Guidely API", lifespan=lifespan)
+
+
+@app.middleware("http")
+async def track_requests(request: Request, call_next):
+    if not request.url.path.startswith("/api"):
+        return await call_next(request)
+    started = time.perf_counter()
+    try:
+        response = await call_next(request)
+    except Exception:
+        metrics.record_request(request.url.path, 500, (time.perf_counter() - started) * 1000)
+        raise
+    metrics.record_request(request.url.path, response.status_code, (time.perf_counter() - started) * 1000)
+    return response
+
+
+@app.get("/metrics")
+def metrics_summary() -> dict:
+    return metrics.summary()
 
 
 @app.exception_handler(StarletteHTTPException)

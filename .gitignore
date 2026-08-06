@@ -13,3 +13,4 @@ dist/
 # local data
 backend/data/cache/
 backend/data/index/
+backend/logs/
