@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { deleteDoc, getDoc, listDocs, updateDoc } from '../api'
+import { deleteDoc, getDoc, listDocs, reindex, updateDoc } from '../api'
 import DocTable from '../components/DocTable'
 import UploadForm from '../components/UploadForm'
 
@@ -7,6 +7,8 @@ export default function Admin() {
   const [docs, setDocs] = useState([])
   const [editing, setEditing] = useState(null) // { name, content }
   const [error, setError] = useState(null)
+  const [indexing, setIndexing] = useState(false)
+  const [indexResult, setIndexResult] = useState(null)
 
   const refresh = useCallback(() => {
     listDocs().then(setDocs).catch((err) => setError(err.message))
@@ -46,10 +48,35 @@ export default function Admin() {
     }
   }
 
+  async function onReindex() {
+    setIndexing(true)
+    setError(null)
+    setIndexResult(null)
+    try {
+      setIndexResult(await reindex())
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setIndexing(false)
+    }
+  }
+
   return (
     <section>
       <h1>Manage documents</h1>
-      <UploadForm onUploaded={refresh} />
+      <div className="admin-actions">
+        <UploadForm onUploaded={refresh} />
+        <button onClick={onReindex} disabled={indexing} className="reindex-btn">
+          {indexing ? 'Indexing…' : 'Rebuild index'}
+        </button>
+      </div>
+      {indexResult && (
+        <p className="index-result">
+          Indexed {indexResult.chunks} chunks from {indexResult.documents} docs in{' '}
+          {indexResult.seconds}s
+          {indexResult.skipped?.length > 0 && ` (skipped: ${indexResult.skipped.join(', ')})`}
+        </p>
+      )}
       {error && <p className="error">{error}</p>}
       <DocTable docs={docs} onEdit={onEdit} onDelete={onDelete} />
 
