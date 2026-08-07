@@ -15,7 +15,7 @@ from services.vector_store import store
 router = APIRouter(prefix="/api/search", tags=["search"])
 
 TOP_K = 5
-MIN_SCORE = 0.35
+MIN_SCORE = 0.55
 
 
 @contextmanager
