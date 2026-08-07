@@ -8,7 +8,7 @@ import numpy as np
 from google.genai import types
 
 from config import CACHE_DIR
-from services.gemini import get_client
+from services.gemini import call_with_retry, get_client
 
 EMBED_MODEL = "gemini-embedding-001"
 EMBED_DIM = 768
@@ -48,13 +48,15 @@ def _embed_api(texts: list[str], task_type: str) -> list[np.ndarray]:
     vectors: list[np.ndarray] = []
     for start in range(0, len(texts), BATCH_SIZE):
         batch = texts[start : start + BATCH_SIZE]
-        resp = client.models.embed_content(
-            model=EMBED_MODEL,
-            contents=batch,
-            config=types.EmbedContentConfig(
-                task_type=task_type,
-                output_dimensionality=EMBED_DIM,
-            ),
+        resp = call_with_retry(
+            lambda batch=batch: client.models.embed_content(
+                model=EMBED_MODEL,
+                contents=batch,
+                config=types.EmbedContentConfig(
+                    task_type=task_type,
+                    output_dimensionality=EMBED_DIM,
+                ),
+            )
         )
         vectors.extend(_normalize(np.array(e.values, dtype=np.float32)) for e in resp.embeddings)
     return vectors
