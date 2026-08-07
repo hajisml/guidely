@@ -13,6 +13,11 @@ import urllib.request
 
 BASE = "http://localhost:8000"
 
+# free-tier gemini-2.5-flash-lite allows 15 requests/minute; pace search calls
+# to stay comfortably under that instead of burning the app's own retry budget
+MIN_INTERVAL_S = 6
+_last_call = 0.0
+
 # question -> doc expected in the top-3 sources
 SEED_QUERIES = {
     "How many days of annual leave do I get per year?": "leave-policy.txt",
@@ -36,6 +41,15 @@ SEED_QUERIES = {
 CACHE_REPEAT = 5
 
 
+def paced_search(question):
+    global _last_call
+    wait = MIN_INTERVAL_S - (time.perf_counter() - _last_call)
+    if wait > 0:
+        time.sleep(wait)
+    _last_call = time.perf_counter()
+    return call("/api/search", {"question": question})
+
+
 def call(path, payload=None, method=None):
     req = urllib.request.Request(
         BASE + path,
@@ -44,7 +58,7 @@ def call(path, payload=None, method=None):
         method=method,
     )
     try:
-        with urllib.request.urlopen(req, timeout=60) as res:
+        with urllib.request.urlopen(req, timeout=240) as res:
             return res.status, json.loads(res.read())
     except urllib.error.HTTPError as err:
         return err.code, json.loads(err.read())
@@ -61,7 +75,7 @@ def main():
     latencies = []
     for question, expected_doc in SEED_QUERIES.items():
         started = time.perf_counter()
-        status, body = call("/api/search", {"question": question})
+        status, body = paced_search(question)
         wall_ms = (time.perf_counter() - started) * 1000
         if status != 200:
             print(f"  FAIL ({status}) {question}: {body.get('error')}")
@@ -82,7 +96,7 @@ def main():
     print("\n== Embedding cache (repeat queries) ==")
     _, before = call("/metrics")
     for question in list(SEED_QUERIES)[:CACHE_REPEAT]:
-        call("/api/search", {"question": question})
+        paced_search(question)
     _, after = call("/metrics")
     new_misses = after["embedding_cache"]["misses"] - before["embedding_cache"]["misses"]
     new_hits = after["embedding_cache"]["hits"] - before["embedding_cache"]["hits"]
@@ -93,7 +107,7 @@ def main():
     failures = {
         "empty query": call("/api/search", {"question": "  "})[0] == 400,
         "invalid body": call("/api/search", {"nope": 1})[0] == 400,
-        "no results": call("/api/search", {"question": "recipe for chocolate lava cake"})[0] == 404,
+        "no results": paced_search("recipe for chocolate lava cake")[0] == 404,
     }
     for name, ok in failures.items():
         print(f"  {'ok ' if ok else 'FAIL'} {name}")
